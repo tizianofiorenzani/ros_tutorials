@@ -158,7 +158,7 @@ def main(args):
      
     # Filter by Area.
     params.filterByArea = True
-    params.minArea = 10
+    params.minArea = 20
     params.maxArea = 20000
      
     # Filter by Circularity
@@ -170,8 +170,8 @@ def main(args):
     params.minConvexity = 0.2
      
     # Filter by Inertia
-    params.filterByInertia =True
-    params.minInertiaRatio = 0.4    
+    params.filterByInertia = True
+    params.minInertiaRatio = 0.7   
 
     ic = BlobDetector(blue_min, blue_max, blur, params, detection_window)
     rospy.init_node('blob_detector', anonymous=True)

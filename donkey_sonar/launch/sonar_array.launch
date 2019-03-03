@@ -1,0 +1,9 @@
+
+<launch>
+
+
+<node pkg="donkey_sonar" name="dk_sonar" type="sonar_array.py" output="screen" >
+</node>
+
+
+</launch>

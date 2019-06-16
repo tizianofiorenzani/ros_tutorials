@@ -10,13 +10,8 @@ export ROS_MASTER_URI=http://localhost:11311
 
 To speedup the process you can edit ~.baschrc with:
 
-function myip()
-{
-    ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\$
-}
-
 source ~/catkin_ws/devel/setup.bash
-export ROS_IP=myip()
+export ROS_IP=`ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'`
 
 export ROS_MASTER_URI=http://ubiquityrobot.local:11311
 or 

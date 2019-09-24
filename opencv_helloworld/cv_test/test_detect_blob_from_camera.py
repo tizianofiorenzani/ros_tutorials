@@ -6,6 +6,8 @@ blue_max = (101, 255, 255)
 
 cap = cv2.VideoCapture(0)
 
+# cap = cv2.VideoCapture('vtest.avi')
+
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()

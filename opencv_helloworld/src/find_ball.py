@@ -2,19 +2,22 @@
 
 #- ON THE RASPI: roslaunch raspicam_node camerav2_320x240.launch enable_raw:=true
 #
-from __future__ import print_function
 
-#import roslib
-#roslib.load_manifest('my_package')
+#--- Allow relative importing
+if __name__ == '__main__' and __package__ is None:
+    from os import sys, path
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+    
 import sys
 import rospy
 import cv2
-from std_msgs.msg import String
-from sensor_msgs.msg import Image
-from geometry_msgs.msg import Point
-from cv_bridge import CvBridge, CvBridgeError
-from blob_detector import *
 import time
+
+from std_msgs.msg           import String
+from sensor_msgs.msg        import Image
+from geometry_msgs.msg      import Point
+from cv_bridge              import CvBridge, CvBridgeError
+from include.blob_detector  import *
 
 
 class BlobDetector:
@@ -102,14 +105,6 @@ class BlobDetector:
             fps = 1.0/(time.time()-self._t0)
             self._t0 = time.time()
             
-            # if len(keypoints) == 1:
-                # self.blob_point.x = x
-                # self.blob_point.y = y
-                # self.blob_pub.publish(self.blob_point)
-            # print ("fps: %.1f"%fps)            
-        
-
-
 def main(args):
     blue_min = (77,40,0)
     blue_max = (101, 255, 255) 

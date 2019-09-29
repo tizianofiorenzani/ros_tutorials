@@ -72,14 +72,15 @@ class DkLowLevelCtrl():
         self.throttle_cmd       = 0.
         self.throttle_chase     = 1.
         self.steer_cmd          = 0.
-        self.steer_avoid        = 0.   
+        self.steer_chase        = 0.   
         
         self._debud_command_msg = Twist()
         
         #--- Get the last time e got a commands
         self._last_time_cmd_rcv     = time.time()
-        self._last_time_avoid_rcv   = time.time()
-        self._timeout_s             = 5
+        self._last_time_chase_rcv   = time.time()
+        self._timeout_ctrl          = 100
+        self._timeout_blob          = 1
 
         rospy.loginfo("Initialization complete")
         
@@ -91,16 +92,14 @@ class DkLowLevelCtrl():
     def update_message_from_chase(self, message):
         self._last_time_chase_rcv = time.time()
         self.throttle_chase       = message.linear.x
-        self.steer_avoid          = message.angular.z        
+        self.steer_chase          = message.angular.z    
+        print self.throttle_chase, self.steer_chase
         
     def compose_command_velocity(self):
         self.throttle       = saturate(self.throttle_cmd*self.throttle_chase, -1, 1)
         
-        #-- Add steering only if positive throttle
-        if self.throttle_cmd > 0:
-            self.steer          = saturate(self.steer_cmd + self.steer_avoid, -1, 1)
-        else:
-            self.steer = self.steer_cmd
+        #-- Add steering 
+        self.steer          = saturate(self.steer_cmd + self.steer_chase, -1, 1)
         
         self._debud_command_msg.linear.x    = self.throttle
         self._debud_command_msg.angular.z   = self.steer
@@ -139,11 +138,11 @@ class DkLowLevelCtrl():
     @property
     def is_controller_connected(self):
         # print time.time() - self._last_time_cmd_rcv
-        return(time.time() - self._last_time_cmd_rcv < self._timeout_s)
+        return(time.time() - self._last_time_cmd_rcv < self._timeout_ctrl)
         
     @property
     def is_chase_connected(self):
-        return(time.time() - self._last_time_chase_rcv < self._timeout_s)        
+        return(time.time() - self._last_time_chase_rcv < self._timeout_blob)        
 
     def run(self):
 
@@ -157,7 +156,7 @@ class DkLowLevelCtrl():
             if not self.is_controller_connected:
                 self.set_actuators_idle()
                 
-            if not self.is_avoid_connected:
+            if not self.is_chase_connected:
                 self.reset_avoid()
                 
 

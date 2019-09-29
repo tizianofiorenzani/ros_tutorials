@@ -29,7 +29,7 @@ def blob_detect(image,                  #-- The frame (cv standard)
 
     #- Blur image to remove noise
     if gauss_kernel > 0: 
-        image    = cv2.GaussianBlur(image, (gauss_kernel, gauss_kernel), 0)
+        image    = cv2.blur(image, (gauss_kernel, gauss_kernel))
         #- Show result
         if imshow:
             cv2.imshow("Gaussian Blur", mask)
@@ -145,6 +145,27 @@ def draw_window(image,              #- Input image
 
     return(image)
 
+#---------- Draw X Y frame
+def draw_frame(image,
+               dimension=0.3,      #- dimension relative to frame size
+               line=2              #- line's thickness
+    ):
+    
+    rows = image.shape[0]
+    cols = image.shape[1]
+    size = min([rows, cols])
+    center_x = int(cols/2.0)
+    center_y = int(rows/2.0)
+    
+    line_length = int(size*dimension)
+    
+    #-- X
+    image = cv2.line(image, (center_x, center_y), (center_x+line_length, center_y), (0,0,255), line)
+    #-- Y
+    image = cv2.line(image, (center_x, center_y), (center_x, center_y+line_length), (0,255,0), line)
+    
+    return (image)
+
 #---------- Apply search window: returns the image
 def cut_image(image, window_adim=[0.0, 0.0, 1.0, 1.0]):
     rows = image.shape[0]
@@ -163,7 +184,39 @@ def cut_image(image, window_adim=[0.0, 0.0, 1.0, 1.0]):
     #--- return the mask
     return(mask)
     
-
+def blur_outside(image, blur=5, window_adim=[0.0, 0.0, 1.0, 1.0]):
+    rows = image.shape[0]
+    cols = image.shape[1]
+    x_min_px    = int(cols*window_adim[0])
+    y_min_px    = int(rows*window_adim[1])
+    x_max_px    = int(cols*window_adim[2])
+    y_max_px    = int(rows*window_adim[3])    
+    
+    #--- Initialize the mask as a black image
+    mask    = cv2.blur(image, (blur, blur))
+    
+    #--- Copy the pixels from the original image corresponding to the window
+    mask[y_min_px:y_max_px,x_min_px:x_max_px] = image[y_min_px:y_max_px,x_min_px:x_max_px]   
+    
+    
+    
+    #--- return the mask
+    return(mask)
+    
+#---------- Obtain the camera relative frame coordinate of one single keypoint
+def get_blob_relative_position(image, keyPoint):
+    rows = float(image.shape[0])
+    cols = float(image.shape[1])
+    # print(rows, cols)
+    center_x    = 0.5*cols
+    center_y    = 0.5*rows
+    # print(center_x)
+    x = (keyPoint.pt[0] - center_x)/(center_x)
+    y = (keyPoint.pt[1] - center_y)/(center_y)
+    return(x,y)
+        
+ 
+        
 #----------- TEST
 if __name__=="__main__":
 

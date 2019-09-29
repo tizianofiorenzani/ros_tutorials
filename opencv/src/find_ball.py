@@ -73,16 +73,17 @@ class BlobDetector:
     def set_blob_params(self, blob_params):
         self._blob_params = blob_params
         
-    def get_blob_relative_position(self, cv_image, keyPoint):
-        cols = float(cv_image.shape[0])
-        rows = float(cv_image.shape[1])
-        # print(rows, cols)
-        center_x    = 0.5*cols
-        center_y    = 0.5*rows
-        # print(center_x)
-        x = (keyPoint.pt[0] - center_x)/(center_x)
-        y = (keyPoint.pt[1] - center_y)/(center_y)
-        return(x,y)
+    # def get_blob_relative_position(self, cv_image, keyPoint):
+        # rows = float(cv_image.shape[0])
+        # cols = float(cv_image.shape[1])
+        # # print(rows, cols)
+        # center_x    = 0.5*cols
+        # center_y    = 0.5*rows
+        # # print(center_x)
+        # x = (keyPoint.pt[0] - center_x)/(center_x)
+        # y = (keyPoint.pt[1] - center_y)/(center_y)
+        # return(x,y)
+        
         
     def callback(self,data):
         #--- Assuming image is 320x240
@@ -97,9 +98,13 @@ class BlobDetector:
             keypoints, mask   = blob_detect(cv_image, self._threshold[0], self._threshold[1], self._blur,
                                             blob_params=self._blob_params, search_window=self.detection_window )
             #--- Draw search window and blobs
-            cv_image    = draw_window(cv_image, window)
-            cv_image    = draw_keypoints(cv_image, keypoints) 
+            cv_image    = blur_outside(cv_image, 10, self.detection_window)
 
+            cv_image    = draw_window(cv_image, self.detection_window, line=1)
+            cv_image    = draw_frame(cv_image)
+            
+            cv_image    = draw_keypoints(cv_image, keypoints) 
+            
             try:
                 self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
                 self.mask_pub.publish(self.bridge.cv2_to_imgmsg(mask, "8UC1"))
@@ -109,13 +114,13 @@ class BlobDetector:
             for i, keyPoint in enumerate(keypoints):
                 #--- Here you can implement some tracking algorithm to filter multiple detections
                 #--- We are simply getting the first result
-                # x = keyPoint.pt[0]
-                # y = keyPoint.pt[1]
-                # s = keyPoint.size
-                # print ("kp %d: s = %3d   x = %3d  y= %3d"%(i, s, x, y))
+                x = keyPoint.pt[0]
+                y = keyPoint.pt[1]
+                s = keyPoint.size
+                print ("kp %d: s = %3d   x = %3d  y= %3d"%(i, s, x, y))
                 
                 #--- Find x and y position in camera adimensional frame
-                x, y = get_blob_relative_position(self, cv_image, keyPoint)
+                x, y = get_blob_relative_position(cv_image, keyPoint)
                 
                 self.blob_point.x = x
                 self.blob_point.y = y
@@ -138,8 +143,8 @@ def main(args):
     max_size = 40
     
     #--- detection window respect to camera frame in [x_min, y_min, x_max, y_max] adimensional (0 to 1)
-    x_min   = 0.2
-    x_max   = 0.8
+    x_min   = 0.1
+    x_max   = 0.9
     y_min   = 0.4
     y_max   = 0.9
     

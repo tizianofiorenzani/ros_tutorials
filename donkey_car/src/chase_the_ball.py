@@ -12,11 +12,7 @@ Publishes commands to
 import math, time
 import rospy
 from geometry_msgs.msg import Twist
-
-DIST_STEER_ENGAGE   = 1.2
-DIST_BREAK          = 0.4
-
-DIST_LAT_ENGAGE     = 0.4
+from geometry_msgs.msg import Point
 
 K_FRONT_DIST_TO_SPEED   = 1.0
 K_LAT_DIST_TO_STEER     = 2.0
@@ -47,27 +43,32 @@ class ChaseBall():
         self._steer_sign_prev   = 0
         
     @property
-    def is_detected(self): return(time.time() - self._time_detected > 1.0)
+    def is_detected(self): return(time.time() - self._time_detected < 1.0)
         
     def update_ball(self, message):
         self.blob_x = message.x
         self.blob_y = message.y
-        
+        self._time_detected = time.time()
         # rospy.loginfo("Ball detected: %.1f  %.1f "%(self.blob_x, self.blob_y))
 
     def get_control_action(self):
         """
         Based on the current ranges, calculate the command
+        
+        Steer will be added to the commanded throttle
+        throttle will be multiplied by the commanded throttle
         """
-        steer_action   = 0.0
+        steer_action    = 0.0
+        throttle_action = 0.0
         
         if self.is_detected:
             #--- Apply steering, proportional to how close is the object
-            steer_action   = K_LAT_DIST_TO_STEER*self.blob_x
+            steer_action   =-K_LAT_DIST_TO_STEER*self.blob_x
             steer_action   = saturate(steer_action, -1.5, 1.5)
-            rospy.loginfo("Steering command %.2f"%steer_action)
+            rospy.loginfo("Steering command %.2f"%steer_action) 
+            throttle_action = 1.0 
             
-        return (steer_action)
+        return (steer_action, throttle_action)
         
     def run(self):
         
@@ -76,8 +77,7 @@ class ChaseBall():
 
         while not rospy.is_shutdown():
             #-- Get the control action
-            throttle_action = 1.0 #-- Multiplicates the manual command
-            steer_action    = self.get_control_action() #-- Adds to the manual command
+            steer_action, throttle_action    = self.get_control_action() 
             
             rospy.loginfo("Steering = %3.1f"%(steer_action))
             
@@ -94,5 +94,5 @@ if __name__ == "__main__":
 
     rospy.init_node('obstacle_avoid')
     
-    obst_avoid     = ObstAvoid()
-    obst_avoid.run()            
+    chase_ball     = ChaseBall()
+    chase_ball.run()            

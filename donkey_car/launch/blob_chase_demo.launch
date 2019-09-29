@@ -1,0 +1,14 @@
+
+<launch>
+
+<include file="$(find i2cpwm_board)/launch/i2cpwm_node.launch"/>
+
+<include file="$(find donkey_sonar)/launch/sonar_array.launch"/>
+
+<node pkg="donkey_car" name="dk_llc_2" type="low_level_control_with_sonar.py" output="screen" >
+</node>
+
+<node pkg="donkey_car" name="dk_avoid" type="obstacle_avoid_sonar.py" output="screen" >
+</node>
+
+</launch>

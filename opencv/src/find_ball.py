@@ -1,7 +1,28 @@
 #!/usr/bin/env python
 
-#- ON THE RASPI: roslaunch raspicam_node camerav2_320x240.launch enable_raw:=true
-#
+"""
+ON THE RASPI: roslaunch raspicam_node camerav2_320x240.launch enable_raw:=true
+
+   0------------------> x (cols) Image Frame
+   |
+   |        c    Camera frame
+   |         o---> x
+   |         |
+   |         V y
+   |
+   V y (rows)
+
+
+SUBSCRIBES TO:
+    /raspicam_node/image: Source image topic
+    
+PUBLISHES TO:
+    /blob/image_blob : image with detected blob and search window
+    /blob/image_mask : masking    
+    /blob/point_blob : blob position in adimensional values wrt. camera frame
+
+"""
+
 
 #--- Allow relative importing
 if __name__ == '__main__' and __package__ is None:
@@ -34,10 +55,10 @@ class BlobDetector:
         self.blob_point = Point()
     
         print (">> Publishing image to topic image_blob")
-        self.image_pub = rospy.Publisher("image_blob",Image,queue_size=1)
-        self.mask_pub = rospy.Publisher("image_mask",Image,queue_size=1)
+        self.image_pub = rospy.Publisher("/blob/image_blob",Image,queue_size=1)
+        self.mask_pub = rospy.Publisher("/blob/image_mask",Image,queue_size=1)
         print (">> Publishing position to topic point_blob")
-        self.blob_pub  = rospy.Publisher("point_blob",Point,queue_size=1)
+        self.blob_pub  = rospy.Publisher("/blob/point_blob",Point,queue_size=1)
 
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/raspicam_node/image",Image,self.callback)
@@ -53,9 +74,8 @@ class BlobDetector:
         self._blob_params = blob_params
         
     def get_blob_relative_position(self, cv_image, keyPoint):
-        (rows,cols,channels) = cv_image.shape
-        cols = float(cols)
-        rows = float(rows)
+        cols = float(cv_image.shape[0])
+        rows = float(cv_image.shape[1])
         # print(rows, cols)
         center_x    = 0.5*cols
         center_y    = 0.5*rows
@@ -73,8 +93,11 @@ class BlobDetector:
 
         (rows,cols,channels) = cv_image.shape
         if cols > 60 and rows > 60 :
-        
-            keypoints, mask   = blob_detect(cv_image, self._threshold[0], self._threshold[1], self._blur, blob_params=self._blob_params)
+            #--- Detect blobs
+            keypoints, mask   = blob_detect(cv_image, self._threshold[0], self._threshold[1], self._blur,
+                                            blob_params=self._blob_params, search_window=self.detection_window )
+            #--- Draw search window and blobs
+            cv_image    = draw_window(cv_image, window)
             cv_image    = draw_keypoints(cv_image, keypoints) 
 
             try:
@@ -84,23 +107,20 @@ class BlobDetector:
                 print(e)            
 
             for i, keyPoint in enumerate(keypoints):
+                #--- Here you can implement some tracking algorithm to filter multiple detections
+                #--- We are simply getting the first result
                 # x = keyPoint.pt[0]
                 # y = keyPoint.pt[1]
-                s = keyPoint.size
+                # s = keyPoint.size
                 # print ("kp %d: s = %3d   x = %3d  y= %3d"%(i, s, x, y))
-                _x, _y = self.get_blob_relative_position(cv_image, keyPoint)
-                print ("kp %d: s = %3d   x = %.2f  y= %.2f"%(i, s, _x, _y))
-
-                if not self.detection_window is None:
-                    if (self.detection_window[0] <= _x <= self.detection_window[1]) and (self.detection_window[2] <= _y <= self.detection_window[3]):
-                        x, y = _x, _y
-                        print ("window kp %d: s = %3d   x = %.2f  y= %.2f"%(i, s, x, y))
-                        self.blob_point.x = x
-                        self.blob_point.y = y
-                        self.blob_pub.publish(self.blob_point)                        
-                else:
-                    x, y = _x, _y
-                    # print ("kp %d: s = %3d   x = %.2f  y= %.2f"%(i, s, x, y))
+                
+                #--- Find x and y position in camera adimensional frame
+                x, y = get_blob_relative_position(self, cv_image, keyPoint)
+                
+                self.blob_point.x = x
+                self.blob_point.y = y
+                self.blob_pub.publish(self.blob_point) 
+                break
                     
             fps = 1.0/(time.time()-self._t0)
             self._t0 = time.time()
@@ -117,13 +137,13 @@ def main(args):
     min_size = 10
     max_size = 40
     
-    #--- detection window respect to camera frame in [-1, 1] (x positive right, y positive down)
-    x_min   = -0.8
-    x_max   =  0.8
-    y_min   = -0.1
+    #--- detection window respect to camera frame in [x_min, y_min, x_max, y_max] adimensional (0 to 1)
+    x_min   = 0.2
+    x_max   = 0.8
+    y_min   = 0.4
     y_max   = 0.9
     
-    detection_window = [x_min, x_max, y_min, y_max]
+    detection_window = [x_min, y_min, x_max, y_max]
     
     params = cv2.SimpleBlobDetector_Params()
          

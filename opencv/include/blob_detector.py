@@ -17,7 +17,7 @@ Library for detecting a blob based on a color range filter in HSV space
 import cv2
 import numpy as np;
 
-#---------- Blob detecting function
+#---------- Blob detecting function: returns keypoints and mask
 def blob_detect(image,                  #-- The frame (cv standard)
                 hsv_min,                #-- minimum threshold of the hsv filter [h_min, s_min, v_min]
                 hsv_max,                #-- maximum threshold of the hsv filter [h_max, s_max, v_max]
@@ -101,9 +101,9 @@ def blob_detect(image,                  #-- The frame (cv standard)
         
     keypoints = detector.detect(reversemask)
 
-    return keypoints
+    return keypoints, reversemask
 
-#---------- Draw detected blobs
+#---------- Draw detected blobs: returns the image
 def draw_keypoints(image,                   #-- Input image
                    keypoints,               #-- CV keypoints
                    line_color=(0,0,255),    #-- line's color (b,g,r)
@@ -120,7 +120,7 @@ def draw_keypoints(image,                   #-- Input image
         
     return(im_with_keypoints)
 
-#---------- Draw search window
+#---------- Draw search window: returns the image
 def draw_window(image,              #- Input image
                 window_adim,        #- window in adimensional units
                 color=(255,0,0),    #- line's color
@@ -145,7 +145,7 @@ def draw_window(image,              #- Input image
 
     return(image)
 
-#---------- Apply search window
+#---------- Apply search window: returns the image
 def cut_image(image, window_adim=[0.0, 0.0, 1.0, 1.0]):
     rows = image.shape[0]
     cols = image.shape[1]
@@ -185,7 +185,7 @@ if __name__=="__main__":
             ret, frame = cap.read()
             
             #-- Detect keypoints
-            keypoints = blob_detect(frame, blue_min, blue_max, gauss_kernel=3, 
+            keypoints, _ = blob_detect(frame, blue_min, blue_max, gauss_kernel=3, 
                                         blob_params=None, search_window=window, imshow=False)
             #-- Draw search window
             frame     = draw_window(frame, window)
@@ -206,7 +206,7 @@ if __name__=="__main__":
 
         for image in image_list:
             #-- Detect keypoints
-            keypoints = blob_detect(image, blue_min, blue_max, gauss_kernel=5, 
+            keypoints, _ = blob_detect(image, blue_min, blue_max, gauss_kernel=5, 
                                         blob_params=None, search_window=window, imshow=False)
             #-- Draw search window
             image     = draw_window(image, window, imshow=True)

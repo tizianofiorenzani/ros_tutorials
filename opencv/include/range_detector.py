@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#-- FROM IMUTILS LIBRARY: https://github.com/jrosebr1/imutils/blob/master/bin/range-detector
+#-- COPIED FROM IMUTILS LIBRARY: https://github.com/jrosebr1/imutils/blob/master/bin/range-detector
 
 
 # USAGE: You need to specify a filter and "only one" image source

@@ -92,7 +92,7 @@ class ChaseBall():
             
 if __name__ == "__main__":
 
-    rospy.init_node('obstacle_avoid')
+    rospy.init_node('chase_ball')
     
     chase_ball     = ChaseBall()
     chase_ball.run()            

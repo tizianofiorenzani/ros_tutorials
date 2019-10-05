@@ -9,6 +9,7 @@ Library for detecting a blob based on a color range filter in HSV space
    |
    V y (rows)
 
+Author: Tiziano Fiorenzani
 
 """
 
@@ -18,21 +19,22 @@ import cv2
 import numpy as np;
 
 #---------- Blob detecting function: returns keypoints and mask
+#-- return keypoints, reversemask
 def blob_detect(image,                  #-- The frame (cv standard)
                 hsv_min,                #-- minimum threshold of the hsv filter [h_min, s_min, v_min]
                 hsv_max,                #-- maximum threshold of the hsv filter [h_max, s_max, v_max]
-                gauss_kernel=0,         #-- Kernel size of the gaussian filter (default 0)
+                blur=0,                 #-- blur value (default 0)
                 blob_params=None,       #-- blob parameters (default None)
                 search_window=None,     #-- window where to search as [x_min, y_min, x_max, y_max] adimensional (0.0 to 1.0) starting from top left corner
                 imshow=False
                ):
 
     #- Blur image to remove noise
-    if gauss_kernel > 0: 
-        image    = cv2.blur(image, (gauss_kernel, gauss_kernel))
+    if blur > 0: 
+        image    = cv2.blur(image, (blur, blur))
         #- Show result
         if imshow:
-            cv2.imshow("Gaussian Blur", mask)
+            cv2.imshow("Blur", mask)
         
     #- Search window
     if search_window is None: search_window = [0.0, 0.0, 1.0, 1.0]
@@ -104,6 +106,7 @@ def blob_detect(image,                  #-- The frame (cv standard)
     return keypoints, reversemask
 
 #---------- Draw detected blobs: returns the image
+#-- return(im_with_keypoints)
 def draw_keypoints(image,                   #-- Input image
                    keypoints,               #-- CV keypoints
                    line_color=(0,0,255),    #-- line's color (b,g,r)
@@ -121,6 +124,7 @@ def draw_keypoints(image,                   #-- Input image
     return(im_with_keypoints)
 
 #---------- Draw search window: returns the image
+#-- return(image)
 def draw_window(image,              #- Input image
                 window_adim,        #- window in adimensional units
                 color=(255,0,0),    #- line's color
@@ -146,6 +150,7 @@ def draw_window(image,              #- Input image
     return(image)
 
 #---------- Draw X Y frame
+#-- return(image)
 def draw_frame(image,
                dimension=0.3,      #- dimension relative to frame size
                line=2              #- line's thickness
@@ -167,6 +172,7 @@ def draw_frame(image,
     return (image)
 
 #---------- Apply search window: returns the image
+#-- return(image)
 def cut_image(image, window_adim=[0.0, 0.0, 1.0, 1.0]):
     rows = image.shape[0]
     cols = image.shape[1]
@@ -184,6 +190,8 @@ def cut_image(image, window_adim=[0.0, 0.0, 1.0, 1.0]):
     #--- return the mask
     return(mask)
     
+#---------- Apply a blur to the outside search region
+#-- return(image)
 def blur_outside(image, blur=5, window_adim=[0.0, 0.0, 1.0, 1.0]):
     rows = image.shape[0]
     cols = image.shape[1]
@@ -204,6 +212,7 @@ def blur_outside(image, blur=5, window_adim=[0.0, 0.0, 1.0, 1.0]):
     return(mask)
     
 #---------- Obtain the camera relative frame coordinate of one single keypoint
+#-- return(x,y)
 def get_blob_relative_position(image, keyPoint):
     rows = float(image.shape[0])
     cols = float(image.shape[1])
@@ -238,7 +247,7 @@ if __name__=="__main__":
             ret, frame = cap.read()
             
             #-- Detect keypoints
-            keypoints, _ = blob_detect(frame, blue_min, blue_max, gauss_kernel=3, 
+            keypoints, _ = blob_detect(frame, blue_min, blue_max, blur=3, 
                                         blob_params=None, search_window=window, imshow=False)
             #-- Draw search window
             frame     = draw_window(frame, window)
@@ -259,7 +268,7 @@ if __name__=="__main__":
 
         for image in image_list:
             #-- Detect keypoints
-            keypoints, _ = blob_detect(image, blue_min, blue_max, gauss_kernel=5, 
+            keypoints, _ = blob_detect(image, blue_min, blue_max, blur=5, 
                                         blob_params=None, search_window=window, imshow=False)
             #-- Draw search window
             image     = draw_window(image, window, imshow=True)

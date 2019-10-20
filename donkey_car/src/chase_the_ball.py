@@ -14,10 +14,7 @@ import rospy
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import Point
 
-K_FRONT_DIST_TO_SPEED   = 1.0
 K_LAT_DIST_TO_STEER     = 2.0
-
-TIME_KEEP_STEERING      = 1.5
 
 def saturate(value, min, max):
     if value <= min: return(min)

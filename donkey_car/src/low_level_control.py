@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-Class for low level control of owr car. It assumes ros-12cpwmboard has been
+Class for low level control of our car. It assumes ros-12cpwmboard has been
 installed
 """
 import rospy

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<launch>
+	<node pkg="ce30c_driver" type="ce30_cloud" name="ce30_cloud" output="screen" >
+		<!--remap from="ce30c_output" to="new_topic_name" /-->
+		<param name="IP" type="string" value="192.168.0.80" />
+		<param name="frame_id" type="string" value="ce30c_lidar" />
+
+		<!-- If want to change IP, uncommit the line below and set the value to the ip you like.
+	     	     If succeed, the LiDAR will reboot and you should restart this node with new "IP" parameter WHEN indicator light turn to 
+		     blue again. Please be careful that the ip cannot be reset if you forget the new one! -->
+		<!--param name="newIP" type="string" value="192.168.1.80" /--> 
+	</node>
+</launch>

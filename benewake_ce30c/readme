@@ -1,0 +1,9 @@
+installed pointcloud to laserscan package:
+sudo apt update
+sudo apt-get install ros-kinetic-pointcloud-to-laserscan
+
+play the rosbag using --clock argument to use sim time
+
+rosbag play ce30_02.bag --clock
+
+In the hector slam launch, use sime time parameter

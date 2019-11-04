@@ -1,0 +1,9 @@
+<launch>
+
+ 
+  
+  <node pkg="tf" type="static_transform_publisher" name="base_to_laser_broadcaster" args="0 0 0 0 0 0 base_link ce30c_lidar 100" />
+
+
+
+</launch>

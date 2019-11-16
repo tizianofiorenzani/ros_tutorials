@@ -1,7 +1,0 @@
-digraph G {
-"base_link" -> "ce30c_lidar"[label="Broadcaster: /base_to_laser_broadcaster\nAverage rate: 10.157 Hz\nMost recent transform: 1572827870.040 ( -0.089 sec old)\nBuffer length: 4.923 sec\n"];
-edge [style=invis];
- subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
-"Recorded at time: 1572827869.951"[ shape=plaintext ] ;
- }->"base_link";
-}

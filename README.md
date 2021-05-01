@@ -8,7 +8,7 @@ export ROS_MASTER_URI=http://ubiquityrobot.local:11311
 In case you are running ROS Master on your local host, set
 export ROS_MASTER_URI=http://localhost:11311
 
-To speedup the process you can edit ~.baschrc with:
+To speedup the process you can edit ~.bashrc with:
 
 source ~/catkin_ws/devel/setup.bash
 export ROS_IP=`ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'`

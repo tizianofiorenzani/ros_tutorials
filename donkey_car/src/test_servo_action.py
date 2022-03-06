@@ -5,13 +5,14 @@ Class for low level control of owr car. It assumes ros-12cpwmboard has been
 installed
 """
 import rospy
+from i2cpwm_board.msg import Servo, ServoArray
 from std_msgs.msg import UInt16
 from geometry_msgs.msg import Twist
 import time
 
 
 class ServoConvert():
-    def __init__(self, id=1, center_value=90, range=180, direction=1):
+    def __init__(self, id=1, center_value=0, range=180, direction=1):
         self.value      = 0.0
         self.value_out  = center_value
         self._center    = center_value
@@ -26,7 +27,7 @@ class ServoConvert():
     def get_value_out(self, value_in):
         #--- value is in [-1, 1]
         self.value      = value_in
-        self.value_out  = max(int(self._dir*value_in*self._half_range + self._center), 0)
+        self.value_out  = int(self._dir*value_in*self._half_range + self._center)
         print self.id, self.value_out
         return(self.value_out)
 
@@ -41,13 +42,11 @@ class DkLowLevelCtrl():
         self.actuators['steering']  = ServoConvert(id=2, direction=1) #-- positive left
         rospy.loginfo("> Actuators corrrectly initialized")
 
-        self._servo_msg = []
-        for i in range(2): 
-            self._servo_msg.append(UInt16())
+        self._servo_msg       = ServoArray()
+        for i in range(2): self._servo_msg.servos.append(Servo())
 
         #--- Create the servo array publisher
-        self.ros_pub_servo_throttle   = rospy.Publisher("/servo_throttle", UInt16, queue_size=1)
-        self.ros_pub_servo_steering   = rospy.Publisher("/servo_steering", UInt16, queue_size=1)
+        self.ros_pub_servo_array    = rospy.Publisher("/servos_absolute", ServoArray, queue_size=1)
         rospy.loginfo("> Publisher corrrectly initialized")
 
         #--- Create the Subscriber to Twist commands
@@ -55,8 +54,8 @@ class DkLowLevelCtrl():
         rospy.loginfo("> Subscriber corrrectly initialized")
 
         #--- Get the last time e got a commands
+        self._last_time_cmd_rcv     = time.time()
         self._timeout_s             = 5
-        self._last_time_cmd_rcv     = time.time() - self._timeout_s
 
         rospy.loginfo("Initialization complete")
 
@@ -81,10 +80,12 @@ class DkLowLevelCtrl():
         self.send_servo_msg()
 
     def send_servo_msg(self):
-        self._servo_msg[0].data = self.actuators['throttle'].value_out
-        self.ros_pub_servo_throttle.publish(self._servo_msg[0])
-        self._servo_msg[1].data = self.actuators['steering'].value_out
-        self.ros_pub_servo_steering.publish(self._servo_msg[1])        
+        for actuator_name, servo_obj in self.actuators.iteritems():
+            self._servo_msg.servos[servo_obj.id-1].servo = servo_obj.id
+            self._servo_msg.servos[servo_obj.id-1].value = servo_obj.value_out
+            rospy.loginfo("Sending to %s command %d"%(actuator_name, servo_obj.value_out))
+
+        self.ros_pub_servo_array.publish(self._servo_msg)
 
     @property
     def is_controller_connected(self):

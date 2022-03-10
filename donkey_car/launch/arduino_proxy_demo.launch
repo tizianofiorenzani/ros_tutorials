@@ -1,0 +1,16 @@
+
+<launch>
+
+
+<node pkg="donkey_car" name="dk_llc" type="low_level_control.py" output="screen" >
+</node>
+
+<node pkg="donkey_car" name="arduino_proxy" type="rc_arduino_2_twist.py" output="screen" >
+</node>
+
+<node name="serial_arduino"     pkg="rosserial_python"      type="serial_node.py">
+<param name="port"              type="string"               value="/dev/ttyUSB0"/>
+<param name="baud"              type="int"                  value="57600"/>
+</node>
+
+</launch>

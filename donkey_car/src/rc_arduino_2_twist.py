@@ -20,10 +20,10 @@ class RcArduinoInput():
         self._pwm_max = 2100
         
         self._sign_throttle = 1
-        self._sign_steering =-1
+        self._sign_steering = 1
         
-        self._offset_throttle = 50
-        self._offset_steering = 50
+        self._offset_throttle = 0
+        self._offset_steering = 0
         
         self._values_received = 0
         
